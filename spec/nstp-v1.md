@@ -188,6 +188,32 @@ lastCounter = -1
 
 Handshake is complete when the client receives SESSION_NONCE.
 
+sequenceDiagram
+    autonumber
+    participant C as Client
+    participant S as Server
+
+    C->>S: USERNAME_LEN (1 byte)
+    C->>S: USERNAME (UTF-8)
+
+    C->>S: PASSWORD_LEN (1 byte)
+    C->>S: PASSWORD (UTF-8)
+
+    Note over S: Derive PSK = PBKDF2(<br/>password, deviceSalt + username)
+    Note over S: Generate SESSION_NONCE (12 bytes)
+
+    S-->>C: SESSION_NONCE (12 bytes)
+
+    Note over C: Derive SESSION_KEY<br/>PBKDF2(password, deviceSalt + username)
+
+    Note over C: counter = 0
+    Note over S: lastCounter = -1
+
+    C->>S: [Encrypted Message #0]<br/>COUNTER=0 + AES-GCM(ciphertext)
+    S->>C: (optional) responses encrypted the same way
+
+    Note over C,S: Secure session established.<br/>All messages use:<br/>AES-GCM(SESSION_KEY, SESSION_NONCE, AAD = COUNTER)
+
 ---
 
 # 7. Secure Message Format
